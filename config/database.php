@@ -8,8 +8,7 @@ class Database {
     private $conn;
 
     public function getConnection() {
-        $this->conn = null;
-
+        if ($this->conn === null) {
         try {
             $this->conn = new PDO(
                 "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
@@ -18,40 +17,20 @@ class Database {
             );
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            
+            // Test the connection
+            $test = $this->conn->query("SELECT 1");
+            if (!$test) {
+                throw new PDOException("Database connection test failed");
+            }
+            
+                error_log("New database connection established.");
         } catch(PDOException $e) {
-            echo "Connection Error: " . $e->getMessage();
+            error_log("Connection Error: " . $e->getMessage());
+            throw new PDOException("Database connection failed: " . $e->getMessage());
+            }
         }
 
         return $this->conn;
     }
 }
-
-// Session configuration
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Helper functions
-function isLoggedIn() {
-    return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
-}
-
-function isAdmin() {
-    return isLoggedIn() && isset($_SESSION['roles']) && in_array('Admin', $_SESSION['roles']);
-}
-
-function requireLogin() {
-    if (!isLoggedIn()) {
-        header('Location: /views/auth/login.php');
-        exit();
-    }
-}
-
-function requireAdmin() {
-    requireLogin();
-    if (!isAdmin()) {
-        header('Location: /views/dashboard.php');
-        exit();
-    }
-}
-?>

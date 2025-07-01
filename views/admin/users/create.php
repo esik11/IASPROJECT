@@ -1,166 +1,123 @@
 <?php
-require_once __DIR__ . '/../../../config/database.php';
+$page_title = 'Create User';
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../../config/helpers.php';
 
-session_start();
-
-// Check if user is logged in and is admin
-if (!isset($_SESSION['employee_id']) || !isset($_SESSION['roles']) || !in_array('Admin', $_SESSION['roles'])) {
-    header('Location: /IASPROJECT/views/auth/login.php');
-    exit();
+if (!has_permission('manage_users')) {
+    $_SESSION['error'] = 'You do not have permission to access this page.';
+    redirect('views/dashboard.php');
 }
 
-// Get user type from URL
-$type = $_GET['type'] ?? 'employee';
-if (!in_array($type, ['employee', 'customer'])) {
-    header('Location: index.php');
-    exit();
+$conn = get_db_connection();
+$type = $_GET['type'] ?? 'employee'; // Default to employee
+if (!in_array($type, ['employee', 'student'])) {
+    $type = 'employee'; // Security fallback
 }
 
-// Fetch roles based on user type
-$db = new Database();
-$conn = $db->getConnection();
+// Fetch available roles based on type
+$role_query_part = ($type === 'student') 
+    ? "WHERE name IN ('Student', 'Guest User')" 
+    : "WHERE name NOT IN ('Student', 'Guest User')";
+$stmt_roles = $conn->query("SELECT id, name FROM roles {$role_query_part} ORDER BY name ASC");
+$roles = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
 
-if ($type === 'customer') {
-    // Only fetch Student and Guest roles for customers
-    $stmt = $conn->prepare("SELECT * FROM roles WHERE role_name IN ('Student', 'Guest')");
-} else {
-    // Fetch all roles except Student and Guest for employees
-    $stmt = $conn->prepare("SELECT * FROM roles WHERE role_name NOT IN ('Student', 'Guest')");
-}
-$stmt->execute();
-$roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Fetch existing departments for the dropdown
+$stmt_depts = $conn->query("SELECT name FROM departments ORDER BY name ASC");
+$departments = $stmt_depts->fetchAll(PDO::FETCH_COLUMN);
+
+require_once __DIR__ . '/../../includes/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New <?php echo ucfirst($type); ?> - Campus Event Management</title>
-    <link rel="stylesheet" href="/IASPROJECT/assets/css/style.css">
-</head>
-<body>
-    <div class="container">
-        <h1>Add New <?php echo ucfirst($type); ?></h1>
-
-        <?php if (isset($_SESSION['error'])): ?>
-            <div class="alert alert-danger">
-                <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
-            </div>
-        <?php endif; ?>
-
-        <form action="process.php" method="POST" class="form">
-            <input type="hidden" name="action" value="create">
-            <input type="hidden" name="type" value="<?php echo $type; ?>">
-
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" class="form-control" required>
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" class="form-control" required>
-            </div>
-
-            <div class="form-group">
-                <label for="first_name">First Name</label>
-                <input type="text" id="first_name" name="first_name" class="form-control" required>
-            </div>
-
-            <div class="form-group">
-                <label for="last_name">Last Name</label>
-                <input type="text" id="last_name" name="last_name" class="form-control" required>
-            </div>
-
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" class="form-control" required>
-            </div>
-
-            <div class="form-group">
-                <label for="phone">Phone</label>
-                <input type="tel" id="phone" name="phone" class="form-control">
-            </div>
-
-            <?php if ($type === 'employee'): ?>
-            <div class="form-group">
-                <label for="department">Department</label>
-                <select id="department" name="department" class="form-control">
-                    <option value="">Select Department</option>
-                    <option value="CET">CET - College Of Engineering and Technology</option>
-                    <option value="CAS">CAS - College of Arts and Science</option>
-                    <option value="CCJ">CCJ - College of Criminal Justice</option>
-                    <option value="CBE">CBE - College of Business Education</option>
-                    <option value="CTE">CTE - College of Teachers Education</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="position">Position</label>
-                <input type="text" id="position" name="position" class="form-control">
-            </div>
-            <?php endif; ?>
-
-            <?php if ($type === 'customer'): ?>
-            <div class="form-group student-department" style="display: none;">
-                <label for="student_department">Department</label>
-                <select id="student_department" name="student_department" class="form-control">
-                    <option value="">Select Department</option>
-                    <option value="CET">CET - College Of Engineering and Technology</option>
-                    <option value="CAS">CAS - College of Arts and Science</option>
-                    <option value="CCJ">CCJ - College of Criminal Justice</option>
-                    <option value="CBE">CBE - College of Business Education</option>
-                    <option value="CTE">CTE - College of Teachers Education</option>
-                </select>
-            </div>
-            <?php endif; ?>
-
-            <div class="form-group">
-                <label>Role<?php echo ($type === 'customer' ? ' (Student or Guest only)' : ''); ?></label>
-                <div class="checkbox-group">
-                    <?php foreach ($roles as $role): ?>
-                    <div class="checkbox-item">
-                        <input type="radio" id="role_<?php echo $role['role_id']; ?>" 
-                               name="roles[]" value="<?php echo $role['role_id']; ?>" required
-                               onchange="toggleStudentDepartment(this, '<?php echo $role['role_name']; ?>')">
-                        <label for="role_<?php echo $role['role_id']; ?>">
-                            <?php echo htmlspecialchars($role['role_name']); ?>
-                        </label>
-                    </div>
-                    <?php endforeach; ?>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">Add New <?= htmlspecialchars(ucfirst($type)) ?></h3>
                 </div>
-            </div>
+                <form action="process.php" method="POST">
+                    <input type="hidden" name="action" value="create_user">
+                    <input type="hidden" name="type" value="<?= htmlspecialchars($type) ?>">
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Common Fields -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="full_name">Full Name</label>
+                                    <input type="text" class="form-control" id="full_name" name="full_name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="username">Username</label>
+                                    <input type="text" class="form-control" id="username" name="username" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="password">Password</label>
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                </div>
+                            </div>
+                            <!-- Type-Specific and Other Fields -->
+                            <div class="col-md-6">
+                                <?php if ($type === 'student'): ?>
+                                    <div class="form-group">
+                                        <label for="student_number">Student Number</label>
+                                        <input type="text" class="form-control" id="student_number" name="student_number" required>
+                                    </div>
+                                <?php else: // Employee fields ?>
+                                    <div class="form-group">
+                                        <label for="position">Position</label>
+                                        <input type="text" class="form-control" id="position" name="position" required>
+                                    </div>
+                                <?php endif; ?>
 
-            <div class="form-group">
-                <label for="status">Status</label>
-                <select id="status" name="status" class="form-control" required>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
+                                <div class="form-group">
+                                    <label for="department">Department</label>
+                                    <select class="form-control" id="department" name="department" required>
+                                        <option value="">Select Department</option>
+                                        <?php foreach ($departments as $department): ?>
+                                            <option value="<?= htmlspecialchars($department) ?>"><?= htmlspecialchars($department) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone">Phone (Optional)</label>
+                                    <input type="text" class="form-control" id="phone" name="phone">
+                                </div>
+                                <div class="form-group">
+                                    <label for="status">Status</label>
+                                    <select class="form-control" id="status" name="status">
+                                        <option value="active" selected>Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="form-group">
+                            <label>Assign Roles</label>
+                            <div>
+                                <?php foreach ($roles as $role): ?>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" name="roles[]" id="role_<?= $role['id'] ?>" value="<?= $role['id'] ?>">
+                                        <label class="form-check-label" for="role_<?= $role['id'] ?>"><?= htmlspecialchars($role['name']) ?></label>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">Create User</button>
+                        <a href="index.php" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
             </div>
-
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Create <?php echo ucfirst($type); ?></button>
-                <a href="index.php" class="btn btn-secondary">Cancel</a>
-            </div>
-        </form>
+        </div>
     </div>
+</div>
 
-    <script>
-    function toggleStudentDepartment(radio, roleName) {
-        const studentDeptDiv = document.querySelector('.student-department');
-        if (studentDeptDiv) {
-            if (roleName === 'Student') {
-                studentDeptDiv.style.display = 'block';
-                document.getElementById('student_department').required = true;
-            } else {
-                studentDeptDiv.style.display = 'none';
-                document.getElementById('student_department').required = false;
-                document.getElementById('student_department').value = '';
-            }
-        }
-    }
-    </script>
-</body>
-</html>
+<?php
+require_once __DIR__ . '/../../includes/footer.php';
+?>

@@ -1,57 +1,36 @@
 <?php
-// Base URL configuration
-define('BASE_URL', '/IASPROJECT/');
+// Start session if not already started
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
-// Database configuration
+// Site Details
+define('SITE_NAME', 'Campus Event Management');
+
+// Base URL - Made static to prevent pathing issues.
+define('BASE_URL', 'http://localhost/IASPROJECT/');
+
+// Database Configuration
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'campus_event_management');
 
-// Session configuration - Move these before session_start()
-if (session_status() === PHP_SESSION_NONE) {
-    // Configure session settings before starting the session
-    ini_set('session.cookie_lifetime', 0);
-    ini_set('session.use_only_cookies', 1);
-    session_start();
-}
+// Pusher API Credentials - Replace with your actual credentials
+define('PUSHER_APP_ID', '2015139');
+define('PUSHER_APP_KEY', 'fd6a54298bed787adaa8');
+define('PUSHER_APP_SECRET', 'e198e618cda1a65dcba1');
+define('PUSHER_APP_CLUSTER', 'ap1');
 
-// Error reporting
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Time zone
+// Timezone
 date_default_timezone_set('Asia/Manila');
 
-// Helper function to get base URL
-function base_url($path = '') {
-    return BASE_URL . ltrim($path, '/');
-}
+// Error logging
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../logs/php_error.log');
+error_reporting(E_ALL);
 
-// Helper function to redirect
-function redirect($path) {
-    header('Location: ' . base_url($path));
-    exit();
-}
+// Include the main database connection and helper functions
+require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/helpers.php'; // Centralized helpers
 
-// Helper function to check if user is logged in
-function is_logged_in() {
-    return isset($_SESSION['user_id']);
-}
-
-// Helper function to require login
-function require_login() {
-    if (!is_logged_in()) {
-        $_SESSION['error'] = 'Please login to access this page.';
-        redirect('views/auth/login.php');
-    }
-}
-
-// Helper function to require admin
-function require_admin() {
-    require_login();
-    if (!isset($_SESSION['roles']) || !in_array('Admin', $_SESSION['roles'])) {
-        $_SESSION['error'] = 'Access denied. Admin privileges required.';
-        redirect('views/dashboard.php');
-    }
-} 
