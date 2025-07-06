@@ -43,8 +43,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${detailsHtml}
                         </${mainElementTag}>
                         <button class="btn btn-sm btn-outline-secondary mark-as-read ms-2" title="Mark as read" data-notification-id="${notif.id}">
-                            <i class="fas fa-check"></i>
-                        </button>
+                                <i class="fas fa-check"></i>
+                            </button>
                     </div>`;
                 notificationList.appendChild(li);
             });
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const eventId = notificationItem.dataset.eventId;
             if (eventId) {
-                showEventDetails(eventId);
+            showEventDetails(eventId);
             }
         }
     });

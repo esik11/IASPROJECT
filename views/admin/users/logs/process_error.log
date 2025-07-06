@@ -2972,3 +2972,149 @@
 [01-Jul-2025 20:29:11 Asia/Manila] New database connection established.
 [01-Jul-2025 20:29:11 Asia/Manila] New database connection established.
 [01-Jul-2025 20:29:11 Asia/Manila] New database connection established.
+[02-Jul-2025 00:50:28 Asia/Manila] [2025-07-02 00:50:28] [INFO] === New Request Started ===
+
+[2025-07-02 00:50:28] [INFO] === New Request Started ===
+[02-Jul-2025 00:50:28 Asia/Manila] [2025-07-02 00:50:28] [INFO] Request Method: POST
+
+[2025-07-02 00:50:28] [INFO] Request Method: POST
+[02-Jul-2025 00:50:28 Asia/Manila] [2025-07-02 00:50:28] [INFO] POST Data: Array
+(
+    [action] => create_user
+    [type] => student
+    [full_name] => jeorge jeorge
+    [username] => student2
+    [email] => jeorgeandreitanelevenelevencio@gmail.com
+    [password] => password
+    [student_number] => 2011810024
+    [department] => CET- College of Engineering and Technology
+    [phone] => 09186913581
+    [status] => active
+    [roles] => Array
+        (
+            [0] => 4
+        )
+
+)
+
+
+[2025-07-02 00:50:28] [INFO] POST Data: Array
+(
+    [action] => create_user
+    [type] => student
+    [full_name] => jeorge jeorge
+    [username] => student2
+    [email] => jeorgeandreitanelevenelevencio@gmail.com
+    [password] => password
+    [student_number] => 2011810024
+    [department] => CET- College of Engineering and Technology
+    [phone] => 09186913581
+    [status] => active
+    [roles] => Array
+        (
+            [0] => 4
+        )
+
+)
+
+[02-Jul-2025 00:50:28 Asia/Manila] [2025-07-02 00:50:28] [INFO] Session Data: Array
+(
+    [user_id] => 1
+    [username] => admin
+    [full_name] => System Administrator
+    [roles] => Array
+        (
+            [0] => Admin
+        )
+
+)
+
+
+[2025-07-02 00:50:28] [INFO] Session Data: Array
+(
+    [user_id] => 1
+    [username] => admin
+    [full_name] => System Administrator
+    [roles] => Array
+        (
+            [0] => Admin
+        )
+
+)
+
+[02-Jul-2025 00:50:28 Asia/Manila] New database connection established.
+[02-Jul-2025 00:50:28 Asia/Manila] New database connection established.
+[02-Jul-2025 00:50:28 Asia/Manila] New database connection established.
+[07-Jul-2025 00:53:56 Asia/Manila] [2025-07-07 00:53:56] [INFO] === New Request Started ===
+
+[2025-07-07 00:53:56] [INFO] === New Request Started ===
+[07-Jul-2025 00:53:56 Asia/Manila] [2025-07-07 00:53:56] [INFO] Request Method: POST
+
+[2025-07-07 00:53:56] [INFO] Request Method: POST
+[07-Jul-2025 00:53:56 Asia/Manila] [2025-07-07 00:53:56] [INFO] POST Data: Array
+(
+    [action] => create_user
+    [type] => employee
+    [full_name] => faculty1
+    [username] => faculty
+    [email] => doctor@example.com
+    [password] => password
+    [position] => head
+    [department] => CAS- College of Arts and Sciences
+    [phone] => 09186913580
+    [status] => active
+    [roles] => Array
+        (
+            [0] => 5
+        )
+
+)
+
+
+[2025-07-07 00:53:56] [INFO] POST Data: Array
+(
+    [action] => create_user
+    [type] => employee
+    [full_name] => faculty1
+    [username] => faculty
+    [email] => doctor@example.com
+    [password] => password
+    [position] => head
+    [department] => CAS- College of Arts and Sciences
+    [phone] => 09186913580
+    [status] => active
+    [roles] => Array
+        (
+            [0] => 5
+        )
+
+)
+
+[07-Jul-2025 00:53:56 Asia/Manila] [2025-07-07 00:53:56] [INFO] Session Data: Array
+(
+    [user_id] => 1
+    [username] => admin
+    [full_name] => System Administrator
+    [roles] => Array
+        (
+            [0] => Admin
+        )
+
+)
+
+
+[2025-07-07 00:53:56] [INFO] Session Data: Array
+(
+    [user_id] => 1
+    [username] => admin
+    [full_name] => System Administrator
+    [roles] => Array
+        (
+            [0] => Admin
+        )
+
+)
+
+[07-Jul-2025 00:53:56 Asia/Manila] New database connection established.
+[07-Jul-2025 00:53:56 Asia/Manila] New database connection established.
+[07-Jul-2025 00:53:56 Asia/Manila] New database connection established.

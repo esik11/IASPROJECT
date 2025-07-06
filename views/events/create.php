@@ -49,6 +49,9 @@ try {
 $idea_title = isset($_GET['title']) ? htmlspecialchars($_GET['title']) : '';
 $idea_description = isset($_GET['description']) ? htmlspecialchars($_GET['description']) : '';
 
+// Get the current date and time in the format required for the 'min' attribute of datetime-local
+$min_date = (new DateTime())->format('Y-m-d\TH:i');
+
 ?>
 
 <div class="container-fluid">
@@ -78,7 +81,7 @@ $idea_description = isset($_GET['description']) ? htmlspecialchars($_GET['descri
                             <!-- Start Date -->
                             <div class="col-md-6 mb-3">
                                 <label for="start_date" class="form-label">Start Date & Time</label>
-                                <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
+                                <input type="datetime-local" class="form-control" id="start_date" name="start_date" required min="<?php echo $min_date; ?>">
                             </div>
                             <!-- End Date -->
                             <div class="col-md-6 mb-3">
@@ -112,17 +115,19 @@ $idea_description = isset($_GET['description']) ? htmlspecialchars($_GET['descri
                         </div>
 
                         <!-- Venue -->
-                        <div class="mb-3">
-                            <label for="venue_id" class="form-label">Venue</label>
-                            <select class="form-select" id="venue_id" name="venue_id" required>
-                                <option value="">Select a venue...</option>
-                                <?php foreach ($venues as $venue): ?>
-                                    <option value="<?php echo $venue['id']; ?>">
-                                        <?php echo htmlspecialchars($venue['name']) . ' (' . htmlspecialchars($venue['location'] ?? 'N/A') . ')'; ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="venue_id" class="form-label">Venue</label>
+                                <select class="form-select" id="venue_id" name="venue_id" required>
+                                    <option value="">Select a venue...</option>
+                                    <?php foreach ($venues as $venue): ?>
+                                        <option value="<?php echo $venue['id']; ?>"><?php echo htmlspecialchars($venue['name']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
                         </div>
+
+                        <div id="venue-availability-status" class="mb-3"></div>
 
                         <div class="row">
                             <!-- Category -->
@@ -201,6 +206,75 @@ function toggleDepartmentField() {
 
 // Call on page load to set initial state
 document.addEventListener('DOMContentLoaded', toggleDepartmentField);
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const venueSelect = document.getElementById('venue_id');
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    const availabilityStatus = document.getElementById('venue-availability-status');
+    const submitButton = document.querySelector('button[type="submit"]');
+
+    function checkAvailability() {
+        const venueId = venueSelect.value;
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
+
+        // Only check if all three fields have values
+        if (!venueId || !startDate || !endDate) {
+            availabilityStatus.innerHTML = ''; // Clear status if fields are incomplete
+            submitButton.disabled = false; // Re-enable button if fields are cleared
+            return;
+        }
+
+        // Basic validation: start date cannot be in the past
+        if (new Date(startDate) < new Date('<?php echo $min_date; ?>')) {
+            availabilityStatus.innerHTML = '<div class="alert alert-danger p-2">The start date cannot be in the past. Please select a future date.</div>';
+            submitButton.disabled = true;
+            return;
+        }
+
+        // Basic validation: end date must be after start date
+        if (new Date(endDate) <= new Date(startDate)) {
+            availabilityStatus.innerHTML = '<div class="alert alert-danger p-2">End date must be after the start date.</div>';
+            submitButton.disabled = true;
+            return;
+        }
+
+        availabilityStatus.innerHTML = '<div class="alert alert-info p-2">Checking availability...</div>';
+        submitButton.disabled = true; // Disable button while checking
+
+        const formData = new FormData();
+        formData.append('venue_id', venueId);
+        formData.append('start_date', startDate);
+        formData.append('end_date', endDate);
+
+        fetch('<?php echo base_url('api/check_venue_availability.php'); ?>', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.available) {
+                availabilityStatus.innerHTML = `<div class="alert alert-success p-2">${data.message}</div>`;
+                submitButton.disabled = false;
+            } else {
+                availabilityStatus.innerHTML = `<div class="alert alert-danger p-2">${data.message}</div>`;
+                submitButton.disabled = true;
+            }
+        })
+        .catch(error => {
+            availabilityStatus.innerHTML = '<div class="alert alert-danger p-2">An error occurred while checking availability.</div>';
+            submitButton.disabled = true;
+            console.error('Error:', error);
+        });
+    }
+
+    venueSelect.addEventListener('change', checkAvailability);
+    startDateInput.addEventListener('change', checkAvailability);
+    endDateInput.addEventListener('change', checkAvailability);
+});
 </script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?> 

@@ -173,7 +173,7 @@ if (!function_exists('redirect')) {
         header('Location: ' . base_url($path));
         exit();
     } 
-}
+} 
 
 if (!function_exists('notify_users_with_permission')) {
     /**
@@ -246,5 +246,196 @@ if (!function_exists('notify_users_with_permission')) {
         } catch (Exception $e) {
             error_log("Failed to notify_users_with_permission for '{$permission}': " . $e->getMessage());
         }
+    }
+} 
+
+/**
+ * Checks if a venue is available for a given time frame, excluding a specific event.
+ *
+ * @param int $venue_id The ID of the venue to check.
+ * @param string $start_date The start date/time in 'Y-m-d H:i:s' format.
+ * @param string $end_date The end date/time in 'Y-m-d H:i:s' format.
+ * @param int|null $event_id_to_exclude An optional event ID to exclude from the check (for updates).
+ * @param int|null $reservation_id_to_exclude An optional reservation ID to exclude (for approvals).
+ * @return bool True if available, false otherwise.
+ */
+function isVenueAvailable($venue_id, $start_date, $end_date, $event_id_to_exclude = null, $reservation_id_to_exclude = null) {
+    $conn = get_db_connection();
+
+    // Check for conflicting approved/pending events
+    $sql = "SELECT COUNT(*) FROM events 
+            WHERE venue_id = :venue_id 
+            AND status IN ('approved', 'pending')
+            AND (
+                (start_date < :end_date AND end_date > :start_date)
+            )";
+    
+    if ($event_id_to_exclude) {
+        $sql .= " AND id != :event_id_to_exclude";
+    }
+
+    $stmt = $conn->prepare($sql);
+    $params = [
+        ':venue_id' => $venue_id,
+        ':start_date' => $start_date,
+        ':end_date' => $end_date,
+    ];
+    if ($event_id_to_exclude) {
+        $params[':event_id_to_exclude'] = $event_id_to_exclude;
+    }
+    $stmt->execute($params);
+    if ($stmt->fetchColumn() > 0) {
+        return false; // Conflict found in events
+    }
+
+    // Check for conflicting approved/pending venue reservations
+    $sql_res = "SELECT COUNT(*) FROM venue_reservations
+                WHERE venue_id = :venue_id
+                AND status IN ('confirmed', 'pending')
+                AND (
+                    (start_time < :end_date AND end_time > :start_date)
+                )";
+    
+    if ($reservation_id_to_exclude) {
+        $sql_res .= " AND id != :reservation_id_to_exclude";
+    }
+
+    $stmt_res = $conn->prepare($sql_res);
+    $params_res = [
+        ':venue_id' => $venue_id,
+        ':start_date' => $start_date,
+        ':end_date' => $end_date,
+    ];
+    if ($reservation_id_to_exclude) {
+        $params_res[':reservation_id_to_exclude'] = $reservation_id_to_exclude;
+    }
+    $stmt_res->execute($params_res);
+    if ($stmt_res->fetchColumn() > 0) {
+        return false; // Conflict found in reservations
+    }
+
+    return true; // No conflicts found
+} 
+
+/**
+ * Notifies all users who have a specific permission.
+ *
+ * @param string $permission The permission string to check for.
+ * @param string $message The notification message.
+ * @param string|null $link An optional URL for the notification.
+ * @param int|null $event_id An optional event ID to associate.
+ */
+function notifyUsersWithPermission($permission, $message, $link = null, $event_id = null) {
+    $conn = get_db_connection();
+    try {
+        // Find all roles that have the specified permission
+        $all_roles_permissions = require __DIR__ . '/permissions.php';
+        $roles_with_permission = [];
+        foreach ($all_roles_permissions as $role_name => $permissions) {
+            if (in_array($permission, $permissions)) {
+                $roles_with_permission[] = $role_name;
+            }
+        }
+
+        if (empty($roles_with_permission)) {
+            return; // No roles have this permission
+        }
+
+        // Find all users who have one of these roles
+        $placeholders = rtrim(str_repeat('?,', count($roles_with_permission)), ',');
+        $sql = "SELECT ur.user_id FROM user_roles ur
+                JOIN roles r ON ur.role_id = r.id
+                WHERE r.name IN ($placeholders)";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($roles_with_permission);
+        $user_ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        if (empty($user_ids)) {
+            return; // No users found with the required roles
+        }
+
+        // Create a notification for each user
+        $notification_sql = "INSERT INTO notifications (user_id, event_id, message, link, is_read) 
+                             VALUES (:user_id, :event_id, :message, :link, 0)";
+        $notification_stmt = $conn->prepare($notification_sql);
+
+        foreach ($user_ids as $user_id) {
+            $notification_stmt->execute([
+                ':user_id' => $user_id,
+                ':event_id' => $event_id,
+                ':message' => $message,
+                ':link' => $link,
+            ]);
+        }
+        
+        // You would trigger Pusher here if it's set up
+        // Example:
+        // $pusher = get_pusher_instance();
+        // if ($pusher) {
+        //     $pusher->trigger('notifications-channel', 'new-notification', ['message' => $message]);
+        // }
+
+    } catch (Exception $e) {
+        // Log error, don't break the user's flow
+        error_log("Notification Error: " . $e->getMessage());
+    }
+}
+
+/**
+ * Gets the name of a venue by its ID.
+ */
+function get_venue_name($venue_id, $conn) {
+    try {
+        $stmt = $conn->prepare("SELECT name FROM venues WHERE id = ?");
+        $stmt->execute([$venue_id]);
+        $venue = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $venue ? $venue['name'] : 'Unknown Venue';
+    } catch (Exception $e) {
+        error_log("Error fetching venue name: " . $e->getMessage());
+        return 'Unknown Venue';
+    }
+}
+
+/**
+ * Gets the full name of a user by their ID.
+ */
+function get_user_full_name($user_id, $conn) {
+    try {
+        $stmt = $conn->prepare("SELECT full_name FROM users WHERE id = ?");
+        $stmt->execute([$user_id]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $user ? $user['full_name'] : 'Unknown User';
+    } catch (Exception $e) {
+        error_log("Error fetching user name: " . $e->getMessage());
+        return 'Unknown User';
+    }
+}
+
+/**
+ * Notifies a specific user by their ID.
+ *
+ * @param int $user_id The ID of the user to notify.
+ * @param string $message The notification message.
+ * @param string|null $link An optional URL for the notification.
+ * @param int|null $event_id An optional event ID to associate.
+ */
+function notifyUserById($user_id, $message, $link = null, $event_id = null) {
+    $conn = get_db_connection();
+    try {
+        $sql = "INSERT INTO notifications (user_id, event_id, message, link, is_read) 
+                VALUES (:user_id, :event_id, :message, :link, 0)";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([
+            ':user_id' => $user_id,
+            ':event_id' => $event_id,
+            ':message' => $message,
+            ':link' => $link,
+        ]);
+        
+        // You would trigger Pusher here if it's set up
+        
+    } catch (Exception $e) {
+        // Log error, don't break the user's flow
+        error_log("Notification Error: " . $e->getMessage());
     }
 } 

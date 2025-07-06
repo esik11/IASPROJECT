@@ -149,7 +149,7 @@ try {
             <?php endif; ?>
 
             <!-- Admin Actions -->
-            <?php if (has_permission('delete_event') && $event['status'] !== 'cancelled'): ?>
+            <?php if (has_permission('cancel_event') && $event['status'] !== 'cancelled'): ?>
                  <form action="<?php echo base_url('views/events/process.php'); ?>" method="POST">
                     <input type="hidden" name="action" value="cancel_event">
                     <input type="hidden" name="event_id" value="<?php echo $event_id; ?>">

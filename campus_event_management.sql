@@ -252,9 +252,35 @@ CREATE TABLE IF NOT EXISTS `announcements` (
     `title` VARCHAR(255) NOT NULL,
     `content` TEXT NOT NULL,
     `user_id` INT NOT NULL,
+    `start_date` DATETIME NOT NULL,
+    `expiry_date` DATETIME NOT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+    INDEX `idx_user` (`user_id`),
+    INDEX `idx_expiry` (`expiry_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Table structure for table `venue_reservations`
+--
+CREATE TABLE IF NOT EXISTS `venue_reservations` (
+    `id` INT PRIMARY KEY AUTO_INCREMENT,
+    `venue_id` INT NOT NULL,
+    `user_id` INT NOT NULL,
+    `event_id` INT NULL,
+    `title` VARCHAR(255) NOT NULL COMMENT 'Purpose of the reservation',
+    `start_time` DATETIME NOT NULL,
+    `end_time` DATETIME NOT NULL,
+    `status` ENUM('pending', 'confirmed', 'rejected', 'cancelled') NOT NULL DEFAULT 'pending',
+    `rejection_reason` TEXT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`venue_id`) REFERENCES `venues` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`event_id`) REFERENCES `events` (`id`) ON DELETE SET NULL,
+    INDEX `idx_venue_datetime` (`venue_id`, `start_time`, `end_time`),
+    INDEX `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

@@ -1,270 +1,149 @@
-/* assets/css/style.css */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-:root {
-    --primary-color: #f8f9fa;
-    --secondary-color: #e9ecef;
-    --accent-color: #007bff;
-    --text-color: #212529;
-    --border-color: #dee2e6;
-    --sidebar-width: 260px;
-    --header-height: 60px;
-    --danger-color: #e74c3c;
-    --success-color: #2ecc71;
-    --warning-color: #f1c40f;
-}
+/*
+    DEMO STYLE
+*/
+@import "https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700";
 
 body {
-    font-family: 'Roboto', sans-serif;
-    background-color: var(--primary-color);
-    color: var(--text-color);
-    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: #fafafa;
 }
 
-/* Layout Structure */
+p {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.1em;
+    font-weight: 300;
+    line-height: 1.7em;
+    color: #999;
+}
+
+a, a:hover, a:focus {
+    color: inherit;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.navbar {
+    padding: 15px 10px;
+    background: #fff;
+    border: none;
+    border-radius: 0;
+    margin-bottom: 40px;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-btn {
+    box-shadow: none;
+    outline: none !important;
+    border: none;
+}
+
+.line {
+    width: 100%;
+    height: 1px;
+    border-bottom: 1px dashed #ddd;
+    margin: 40px 0;
+}
+
+/* ---------------------------------------------------
+    SIDEBAR STYLE
+----------------------------------------------------- */
 .wrapper {
     display: flex;
-    min-height: 100vh;
+    width: 100%;
+    align-items: stretch;
 }
 
-/* Sidebar Styles */
-.sidebar {
-    width: var(--sidebar-width);
-    background-color: #fff;
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    z-index: 1030;
-    transition: transform 0.3s ease-in-out;
+#sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    background: #2c3e50;
+    color: #ecf0f1;
+    transition: all 0.3s;
 }
 
-.sidebar-header {
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-color);
-    height: var(--header-height);
+#sidebar.active {
+    margin-left: -250px;
 }
 
-.sidebar-header h3 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: var(--accent-color);
+#sidebar .sidebar-header {
+    padding: 20px;
+    background: #233140;
 }
 
-.sidebar-user {
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.sidebar-user .user-avatar {
-    font-size: 1.5rem;
-    color: #6c757d;
-}
-
-.sidebar-nav {
-    flex-grow: 1;
-    overflow-y: auto;
-}
-
-.sidebar-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.sidebar-nav a {
-    display: flex;
-    align-items: center;
-    padding: 0.9rem 1.5rem;
-    color: var(--text-color);
-    text-decoration: none;
-    transition: background-color 0.3s ease;
-    border-left: 3px solid transparent;
-}
-
-.sidebar-nav a:hover,
-.sidebar-nav a.active {
-    background-color: var(--secondary-color);
-    border-left-color: var(--accent-color);
-}
-
-.sidebar-nav a i {
-    width: 25px;
-    margin-right: 1rem;
+#sidebar .sidebar-user {
+    padding: 15px;
+    border-bottom: 1px solid #47748b;
     text-align: center;
 }
 
-/* Main Content Styles */
-.main-content {
-    flex-grow: 1;
-    margin-left: var(--sidebar-width);
-    display: flex;
-    flex-direction: column;
-    transition: margin-left 0.3s ease-in-out;
+#sidebar .user-info .user-name {
+    color: #fff;
 }
 
-.main-header {
-    background-color: #fff;
-    border-bottom: 1px solid var(--border-color);
-    padding: 0 1.5rem;
-    height: var(--header-height);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 1020;
+#sidebar .user-info .user-role {
+    font-size: 0.8em;
+    color: #bdc3c7;
 }
 
-.main-header .header-left {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+#sidebar ul.components {
+    padding: 20px 0;
+    border-bottom: 1px solid #47748b;
 }
 
-.page-title {
-    font-size: 1.5rem;
-    margin: 0;
+#sidebar ul p {
+    color: #fff;
+    padding: 10px;
 }
 
-.sidebar-toggle {
-    background: none;
-    border: none;
-    font-size: 1.25rem;
-    cursor: pointer;
-    color: var(--text-color);
+#sidebar ul li a {
+    padding: 10px 15px;
+    font-size: 1.1em;
+    display: block;
+    color: #ecf0f1;
+    border-left: 3px solid transparent;
+}
+#sidebar ul li a:hover {
+    color: #fff;
+    background: #4a90e2;
+    border-left-color: #ecf0f1;
 }
 
-.main-header .header-right {
-    display: flex;
-    align-items: center;
+#sidebar ul li.active > a, a[aria-expanded="true"] {
+    color: #fff;
+    background: #4a90e2;
 }
 
-.notification-dropdown .dropdown-menu {
-    width: 320px;
-    padding: 0;
+#sidebar ul li a i {
+    margin-right: 10px;
 }
 
-.notification-item {
-    white-space: normal;
-}
-.notification-item .message-content {
-    flex-grow: 1;
-}
-
-/* Make sure dropdowns are not hidden by other elements */
-.main-header .dropdown-menu {
-    z-index: 1021; /* Higher than default header z-index */
+ul ul a {
+    font-size: 0.9em !important;
+    padding-left: 30px !important;
+    background: #34495e;
 }
 
-/* Notification Styles */
-.notification-dropdown .dropdown-item {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border-color);
+/* ---------------------------------------------------
+    CONTENT STYLE
+----------------------------------------------------- */
+#content {
+    width: 100%;
+    padding: 20px;
+    min-height: 100vh;
+    transition: all 0.3s;
 }
 
-.notification-dropdown .dropdown-item:last-child {
-    border-bottom: none;
-}
-
-/* Page Container */
-.page-container {
-    padding: 1.5rem;
-    flex-grow: 1;
-}
-
-/* Footer Styles */
-.main-footer {
-    background-color: #fff;
-    border-top: 1px solid var(--border-color);
-    padding: 1rem;
-    margin-top: auto;
-}
-
-/* Card Styles */
-.card {
-    border: 1px solid var(--border-color);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
-}
-
-/* Responsive Styles */
-@media (max-width: 991.98px) {
-    .sidebar {
-        transform: translateX(-100%);
+/* ---------------------------------------------------
+    MEDIAQUERIES
+----------------------------------------------------- */
+@media (max-width: 768px) {
+    #sidebar {
+        margin-left: -250px;
     }
-
-    body.sidebar-open .sidebar {
-        transform: translateX(0);
-    }
-
-    .main-content {
+    #sidebar.active {
         margin-left: 0;
     }
-
-    .page-title.d-none.d-sm-block {
-        display: none !important;
+    #sidebarCollapse span {
+        display: none;
     }
-}
-
-/* Custom utility classes */
-.justify-content-between { justify-content: space-between !important; }
-.flex-column { flex-direction: column !important; }
-
-/* Utility Classes */
-.text-primary { color: var(--primary-color) !important; }
-.text-success { color: var(--success-color) !important; }
-.text-danger { color: var(--danger-color) !important; }
-.text-warning { color: var(--warning-color) !important; }
-.text-muted { color: #6c757d !important; }
-
-.bg-primary { background-color: var(--primary-color) !important; }
-.bg-success { background-color: var(--success-color) !important; }
-.bg-danger { background-color: var(--danger-color) !important; }
-.bg-warning { background-color: var(--warning-color) !important; }
-
-.mb-0 { margin-bottom: 0 !important; }
-.mb-2 { margin-bottom: 0.5rem !important; }
-.mb-4 { margin-bottom: 1.5rem !important; }
-
-.mt-0 { margin-top: 0 !important; }
-.mt-2 { margin-top: 0.5rem !important; }
-.mt-4 { margin-top: 1.5rem !important; }
-
-.d-flex { display: flex !important; }
-.align-items-center { align-items: center !important; }
-
-#notification-count {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    font-size: 0.65em;
-    padding: 0.2em 0.5em;
-}
-
-#notification-list .dropdown-item {
-    display: block;
-    width: 100%;
-    clear: both;
-    font-weight: 400;
-    color: #212529;
-    text-align: inherit;
-    white-space: nowrap;
-    background-color: transparent;
-    border: 0;
-}
-#notification-list .dropdown-item .text-muted {
-    font-size: 0.8em;
 }
